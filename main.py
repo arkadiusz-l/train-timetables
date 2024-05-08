@@ -1,8 +1,10 @@
+import os
 import re
 import logging
 from time import sleep
 import requests
 from bs4 import BeautifulSoup
+from tqdm import tqdm
 
 
 def find_links_with_text(url, text):
@@ -20,17 +22,27 @@ def find_links_with_text(url, text):
         print("Nie udało się pobrać strony.")
 
 
-def download_file(file_url):
+def download_file(file_url, stream=True):
     logging.debug(f"{file_url=}")
-
-    filename = file_url.split('/')[-1]
-    print(f"Pobieram plik: {filename}...")
 
     response = requests.get(file_url)
     if response.status_code == 200:
-        with open(filename, 'wb') as file:
-            file.write(response.content)
-            print(f"Pobrano plik: {filename}")
+        filename = file_url.split('/')[-1]
+        file_length = int(response.headers.get("content-length", 0))
+        logging.debug(f"{file_length=}")
+        chunk_size = 1024
+
+        with open(filename, 'wb') as file, tqdm(
+            desc=filename,
+            total=file_length,
+            unit='iB',
+            unit_scale=True,
+            unit_divisor=chunk_size
+        ) as bar:
+            for data in response.iter_content(chunk_size=chunk_size):
+                size = file.write(data)
+                bar.update(size)
+        print(f"Pobrano plik: {filename}")
     else:
         print(f"Nie udało się pobrać pliku: {file_url}")
     sleep(LATENCY)
@@ -46,4 +58,4 @@ if __name__ == '__main__':
     )
 
     for link in links:
-        download_file(link.get('href'))
+        download_file(file_url=link.get('href'))
