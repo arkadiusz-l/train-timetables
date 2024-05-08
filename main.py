@@ -42,7 +42,7 @@ if __name__ == '__main__':
 
     links = find_links_with_text(
         url="https://www.wtp.waw.pl/rozklady-jazdy/?wtp_dt=2023-03-08&wtp_md=3&wtp_ln=S4",
-        text="dni powszednie"
+        text="Rozkład jazdy linii S4 "  # space after "4" to bypass S40 line
     )
 
     for link in links:
