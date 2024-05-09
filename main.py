@@ -22,17 +22,22 @@ def find_links_with_text(url, text):
         print("Nie udało się pobrać strony.")
 
 
-def download_file(file_url, stream=True):
+def download_file(file_url, downloads_dir):
     logging.debug(f"{file_url=}")
 
-    response = requests.get(file_url)
+    response = requests.get(file_url, stream=True)
     if response.status_code == 200:
-        filename = file_url.split('/')[-1]
         file_length = int(response.headers.get("content-length", 0))
         logging.debug(f"{file_length=}")
         chunk_size = 1024
 
-        with open(filename, 'wb') as file, tqdm(
+        filename = file_url.split('/')[-1]
+        download_path = os.path.join(downloads_dir, filename)
+        logging.debug(f"{download_path=}")
+
+        os.makedirs(os.path.dirname(download_path), exist_ok=True)
+
+        with open(download_path, 'wb') as file, tqdm(
             desc=filename,
             total=file_length,
             unit='iB',
@@ -51,6 +56,9 @@ def download_file(file_url, stream=True):
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     LATENCY = 0.5
+    DOWNLOADS_DIR = os.path.abspath(
+        os.path.join(os.environ.get("HOMEPATH"), "Desktop", "Rozkłady jazdy pociągów")
+    )
 
     links = find_links_with_text(
         url="https://www.wtp.waw.pl/rozklady-jazdy/?wtp_dt=2023-03-08&wtp_md=3&wtp_ln=S4",
@@ -58,4 +66,4 @@ if __name__ == '__main__':
     )
 
     for link in links:
-        download_file(file_url=link.get('href'))
+        download_file(file_url=link.get('href'), downloads_dir=DOWNLOADS_DIR)
