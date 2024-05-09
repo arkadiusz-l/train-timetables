@@ -22,7 +22,7 @@ def find_links_with_text(url, text):
         print("Nie udało się pobrać strony.")
 
 
-def download_file(file_url, downloads_dir):
+def download_file(file_url, downloads_dir, filename):
     logging.debug(f"{file_url=}")
 
     response = requests.get(file_url, stream=True)
@@ -31,7 +31,6 @@ def download_file(file_url, downloads_dir):
         logging.debug(f"{file_length=}")
         chunk_size = 1024
 
-        filename = file_url.split('/')[-1]
         download_path = os.path.join(downloads_dir, filename)
         logging.debug(f"{download_path=}")
 
@@ -66,4 +65,6 @@ if __name__ == '__main__':
     )
 
     for link in links:
-        download_file(file_url=link.get('href'), downloads_dir=DOWNLOADS_DIR)
+        file_url = link.get('href')
+        filename = file_url.split('/')[-1]
+        download_file(file_url=file_url, downloads_dir=DOWNLOADS_DIR, filename=filename)
