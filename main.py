@@ -8,10 +8,24 @@ from tqdm import tqdm
 
 
 class LinkNotFound(Exception):
+    """
+    Exception raised when a link is not found.
+
+    This exception can be raised when a link is not found on a given webpage.
+    """
     pass
 
 
-def get_train_timetable(line):
+def get_train_timetable(line: str) -> None:
+    """
+    Get the train timetable for a specific train line.
+
+    Args:
+        line (str): The train line for which to retrieve the timetable.
+
+    Returns:
+        None
+    """
     print(f"Szukam rozkładu jazdy dla linii {line}...")
     url = f'https://www.wtp.waw.pl/rozklady-jazdy/?wtp_md=3&wtp_ln={line}'
     text = f'Rozkład jazdy linii {line} '  # space at the end to bypass S40 line
@@ -37,7 +51,20 @@ def get_train_timetable(line):
     print(f"Zakończyłem szukanie rozkładu jazdy dla linii {line}.")
 
 
-def find_links_with_text(url, text):
+def find_links_with_text(url: str, text: str) -> list:
+    """
+    Finds all links on a webpage that contain a specific text.
+
+    Args:
+        url (str): The URL of the webpage to search for links.
+        text (str): The text to search for in the links.
+
+    Returns:
+        list: A list of links containing the specified text.
+
+    Raises:
+        LinkNotFound: If no links containing the specified text are found.
+    """
     response = requests.get(url)
 
     soup = BeautifulSoup(response.content, 'html.parser')
@@ -48,7 +75,18 @@ def find_links_with_text(url, text):
     raise LinkNotFound
 
 
-def download_file(file_url, downloads_dir, filename):
+def download_file(file_url: str, downloads_dir: str, filename: str) -> None:
+    """
+    Downloads a file from a given URL and save it to the specified directory with the provided filename.
+
+    Args:
+        file_url (str): The URL of the file to download.
+        downloads_dir (str): The directory where the file will be saved.
+        filename (str): The name of the file to be saved as.
+
+    Returns:
+        None
+    """
     logging.debug(f'{file_url=}')
 
     response = requests.get(file_url, stream=True)
