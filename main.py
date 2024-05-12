@@ -1,7 +1,6 @@
 import logging
 import os
 import re
-from datetime import date
 from time import sleep
 import requests
 from bs4 import BeautifulSoup
@@ -10,11 +9,9 @@ from tqdm import tqdm
 
 def get_train_timetable(line):
     print(f"Szukam rozkładu jazdy dla linii {line}...")
-    today = get_current_date()
-    url = f'https://www.wtp.waw.pl/rozklady-jazdy/?wtp_dt={today}&wtp_md=3&wtp_ln={line}'
+    url = f'https://www.wtp.waw.pl/rozklady-jazdy/?wtp_md=3&wtp_ln={line}'
     text = f'Rozkład jazdy linii {line} '  # space at the end to bypass S40 line
 
-    logging.debug(f'{today=}')
     logging.debug(f'{url=}')
     logging.debug(f'{text=}')
 
@@ -34,10 +31,6 @@ def get_train_timetable(line):
             print(f"Plik '{filename}' już istnieje.")
 
     print(f"Zakończyłem szukanie rozkładu jazdy dla linii {line}.")
-
-
-def get_current_date():
-    return date.today().strftime("%Y-%m-%d")
 
 
 def find_links_with_text(url, text):
