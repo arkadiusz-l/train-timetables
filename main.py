@@ -129,6 +129,6 @@ if __name__ == '__main__':
         get_train_timetable(line='S3')
         get_train_timetable(line='S4')
     except requests.exceptions.ConnectionError:
-        print("Błąd połączenia! Nie udało się pobrać strony!")
+        print("Błąd połączenia!")
     except LinkNotFound:
         print("Nie znaleziono linków zawierających szukany tekst!")
