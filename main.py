@@ -7,6 +7,10 @@ from bs4 import BeautifulSoup
 from tqdm import tqdm
 
 
+class LinkNotFound(Exception):
+    pass
+
+
 def get_train_timetable(line):
     print(f"Szukam rozkładu jazdy dla linii {line}...")
     url = f'https://www.wtp.waw.pl/rozklady-jazdy/?wtp_md=3&wtp_ln={line}'
@@ -36,16 +40,12 @@ def get_train_timetable(line):
 def find_links_with_text(url, text):
     response = requests.get(url)
 
-    if response.status_code == 200:
-        soup = BeautifulSoup(response.content, 'html.parser')
-        pattern = re.compile(text, re.IGNORECASE)
-        all_links = soup.find_all('a', string=pattern)
-        if all_links:
-            return all_links
-        else:
-            print(f"Nie znaleziono linków zawierających tekst: '{text}'.")
-    else:
-        print("Nie udało się pobrać strony.")
+    soup = BeautifulSoup(response.content, 'html.parser')
+    pattern = re.compile(text, re.IGNORECASE)
+    all_links = soup.find_all('a', string=pattern)
+    if all_links:
+        return all_links
+    raise LinkNotFound
 
 
 def download_file(file_url, downloads_dir, filename):
@@ -87,5 +87,10 @@ if __name__ == '__main__':
         os.path.join(os.environ.get('HOMEPATH'), 'Desktop', 'Rozkłady jazdy pociągów')
     )
 
-    get_train_timetable(line='S3')
-    get_train_timetable(line='S4')
+    try:
+        get_train_timetable(line='S3')
+        get_train_timetable(line='S4')
+    except requests.exceptions.ConnectionError:
+        print("Błąd połączenia! Nie udało się pobrać strony!")
+    except LinkNotFound:
+        print("Nie znaleziono linków zawierających szukany tekst!")
