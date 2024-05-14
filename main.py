@@ -192,3 +192,10 @@ if __name__ == '__main__':
         print("Błąd połączenia!")
     except LinkNotFound:
         print("Nie znaleziono linków zawierających szukany tekst!")
+
+    for filename in os.listdir(downloads_dir):
+        if filename.endswith('.pdf'):
+            filepath = os.path.join(downloads_dir, filename)
+            with open(filepath, 'r'):
+                pdf_content = parse_pdf_file(filepath=filepath)
+                get_timetables(station='wieliszew', file_content=pdf_content)
