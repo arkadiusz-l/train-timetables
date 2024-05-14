@@ -4,6 +4,7 @@ import re
 from time import sleep
 import requests
 from bs4 import BeautifulSoup
+from pypdf import PdfReader
 from tqdm import tqdm
 
 
@@ -14,6 +15,48 @@ class LinkNotFound(Exception):
     This exception can be raised when a link is not found on a given webpage.
     """
     pass
+
+
+def get_timetables_from_file(station: str, filepath: str) -> None:
+    """
+    Function retrieves timetables from the specified PDF file for a given station.
+
+    Args:
+        station (str): Name of the station to search for in the timetables.
+        filepath (str): Path to the PDF file containing the timetables.
+    """
+    station = station.upper()
+    reader = PdfReader(filepath)
+
+    for page in reader.pages:
+        lines = page.extract_text(
+            extraction_mode='layout',
+            layout_mode_space_vertically=False,
+            layout_mode_scale_weight=1.0
+        )
+
+        lines = lines.splitlines()
+
+        train_line = lines[0]
+        period = lines[1]
+        print(train_line)
+        print(period)
+
+        for i in range(len(lines)):
+            line = lines[i]
+
+            if "kierunek" in line:
+                direction = line
+                print(direction)
+
+            if station in line:
+                if "o" in line:
+                    print(line)
+                elif "p" in line:
+                    print(line)
+                    next_line = lines[i+1]
+                    if "o" in next_line:
+                        print(next_line)
 
 
 def get_train_timetable(line: str) -> None:
