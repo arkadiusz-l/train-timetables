@@ -19,7 +19,7 @@ class LinkNotFound(Exception):
 
 def get_timetables_from_file(station: str, filepath: str) -> None:
     """
-    Function retrieves timetables from the specified PDF file for a given station.
+    Extract train timetables from the specified PDF file for a given train station.
 
     Args:
         station (str): Name of the station to search for in the timetables.
@@ -59,9 +59,9 @@ def get_timetables_from_file(station: str, filepath: str) -> None:
                         print(next_line)
 
 
-def get_train_timetable(line: str) -> None:
+def download_train_timetable(line: str) -> None:
     """
-    Get the train timetable for a specific train line.
+    Download the train timetable for a specific train line.
 
     Args:
         line (str): The train line for which to retrieve the timetable.
@@ -76,7 +76,7 @@ def get_train_timetable(line: str) -> None:
     logging.debug(f'{url=}')
     logging.debug(f'{text=}')
 
-    links = find_links_with_text(
+    links = find_links_on_webpage(
         url=url,
         text=text
     )
@@ -94,7 +94,7 @@ def get_train_timetable(line: str) -> None:
     print(f"Zakończyłem szukanie rozkładu jazdy dla linii {line}.")
 
 
-def find_links_with_text(url: str, text: str) -> list:
+def find_links_on_webpage(url: str, text: str) -> list:
     """
     Finds all links on a webpage that contain a specific text.
 
@@ -169,8 +169,8 @@ if __name__ == '__main__':
     )
 
     try:
-        get_train_timetable(line='S3')
-        get_train_timetable(line='S4')
+        download_train_timetable(line='S3')
+        download_train_timetable(line='S4')
     except requests.exceptions.ConnectionError:
         print("Błąd połączenia!")
     except LinkNotFound:

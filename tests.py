@@ -1,5 +1,5 @@
 from unittest.mock import patch, MagicMock
-from main import find_links_with_text, LinkNotFound
+from main import find_links_on_webpage, LinkNotFound
 import pytest
 
 
@@ -22,7 +22,7 @@ def test_find_links_with_text():
     mock_get = MagicMock(return_value=mock_response)
 
     with patch('main.requests.get', mock_get):
-        links = find_links_with_text("http://example.com", "Link")
+        links = find_links_on_webpage("http://example.com", "Link")
 
     links = [link['href'] for link in links]
 
@@ -53,4 +53,4 @@ def test_find_links_with_text_failed():
 
     with patch('main.requests.get', mock_get):
         with pytest.raises(LinkNotFound):
-            find_links_with_text("http://example.com", "Link")
+            find_links_on_webpage("http://example.com", "Link")
