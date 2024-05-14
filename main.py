@@ -17,51 +17,83 @@ class LinkNotFound(Exception):
     pass
 
 
-def get_timetables_from_file(station: str, filepath: str) -> None:
+def parse_pdf_file(filepath: str) -> list:
     """
-    Function retrieves timetables from the specified PDF file for a given station.
+    Parse the text content of a PDF file and return it as a list of lines.
 
     Args:
-        station (str): Name of the station to search for in the timetables.
-        filepath (str): Path to the PDF file containing the timetables.
+        filepath (str): The path to the PDF file to be parsed.
+
+    Returns:
+        list: A list of lines containing the extracted text content from the PDF file.
     """
-    station = station.upper()
     reader = PdfReader(filepath)
 
+    file_content = []
     for page in reader.pages:
-        lines = page.extract_text(
+        page_content = page.extract_text(
             extraction_mode='layout',
             layout_mode_space_vertically=False,
             layout_mode_scale_weight=1.0
         )
 
-        lines = lines.splitlines()
-
-        train_line = lines[0]
-        period = lines[1]
-        print(train_line)
-        print(period)
-
-        for i in range(len(lines)):
-            line = lines[i]
-
-            if "kierunek" in line:
-                direction = line
-                print(direction)
-
-            if station in line:
-                if "o" in line:
-                    print(line)
-                elif "p" in line:
-                    print(line)
-                    next_line = lines[i+1]
-                    if "o" in next_line:
-                        print(next_line)
+        page_content = page_content.splitlines()
+        file_content.extend(page_content)
+        logging.debug(f"{file_content=}")
+    return file_content
 
 
-def get_train_timetable(line: str) -> None:
+def get_timetable_from_parsed_pdf(station: str, file_content: list) -> str:
     """
-    Get the train timetable for a specific train line.
+    Extract train timetables from the parsed PDF file for a given train station.
+
+    Args:
+        station (str): Name of the station to search for in the timetables.
+        file_content (list): The text content of the parsed PDF file containing the timetables.
+
+    Returns:
+        str: A train timetable for a given train station.
+    """
+    station = station.upper()
+    file_lines = file_content
+    timetable = ""
+    train_line = file_lines[0]
+    period = file_lines[1]
+    timetable += train_line + '\n'
+    timetable += period + '\n'
+
+    for i in range(len(file_lines)):
+        file_line = file_lines[i]
+        if "kierunek" in file_line:
+            direction = file_line
+            timetable += direction + '\n'
+        if station in file_line:
+            if "o" in file_line:
+                timetable += file_line + '\n'
+            elif "p" in file_line:
+                timetable += file_line + '\n'
+                next_file_line = file_lines[i+1]
+                if "o" in next_file_line:
+                    timetable += next_file_line + '\n'
+    return timetable
+
+
+def save_timetable_to_file(timetable: str, output_filepath: str) -> None:
+    """
+    Saves a train timetable to a text file.
+
+    Args:
+        timetable (str): The text content of the parsed PDF file containing the timetables.
+        output_filepath (str): The path to the output file.
+    """
+    with open(output_filepath, 'a', encoding='utf-8') as file:
+        file.write(timetable)
+    print(f"Rozkład jazdy zapisano w pliku '{output_filepath}'.")
+
+
+def download_train_timetable(line: str) -> None:
+    """
+    Download the train timetable for a specific train line.
 
     Args:
         line (str): The train line for which to retrieve the timetable.
@@ -76,7 +108,7 @@ def get_train_timetable(line: str) -> None:
     logging.debug(f'{url=}')
     logging.debug(f'{text=}')
 
-    links = find_links_with_text(
+    links = find_links_on_webpage(
         url=url,
         text=text
     )
@@ -85,16 +117,16 @@ def get_train_timetable(line: str) -> None:
         file_url = link.get('href')
         filename = link.text + '.pdf'
 
-        downloaded_file_path = os.path.join(DOWNLOADS_DIR, filename)
+        downloaded_file_path = os.path.join(downloads_dir, filename)
         if not os.path.exists(downloaded_file_path):  # if file not exists in downloads directory
-            download_file(file_url=file_url, downloads_dir=DOWNLOADS_DIR, filename=filename)
+            download_file(file_url=file_url, downloads_dir=downloads_dir, filename=filename)
         else:
             print(f"Plik '{filename}' już istnieje.")
 
     print(f"Zakończyłem szukanie rozkładu jazdy dla linii {line}.")
 
 
-def find_links_with_text(url: str, text: str) -> list:
+def find_links_on_webpage(url: str, text: str) -> list:
     """
     Finds all links on a webpage that contain a specific text.
 
@@ -158,20 +190,39 @@ def download_file(file_url: str, downloads_dir: str, filename: str) -> None:
         print(f"Pobrano plik: {filename}.")
     else:
         print(f"Nie udało się pobrać pliku '{filename}' z lokalizacji: '{file_url}'.")
-    sleep(LATENCY)
+    sleep(latency)
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
-    LATENCY = 0.75
-    DOWNLOADS_DIR = os.path.abspath(
+    logging.basicConfig(level=logging.DEBUG)
+    pypdf_logger = logging.getLogger('pypdf')
+    pypdf_logger.setLevel(logging.ERROR)  # disable WARNING messages from PyPDF library
+    latency = 0.75
+    downloads_dir = os.path.abspath(
         os.path.join(os.environ.get('HOMEPATH'), 'Desktop', 'Rozkłady jazdy pociągów')
     )
 
     try:
-        get_train_timetable(line='S3')
-        get_train_timetable(line='S4')
+        download_train_timetable(line='S3')
+        download_train_timetable(line='S4')
     except requests.exceptions.ConnectionError:
         print("Błąd połączenia!")
     except LinkNotFound:
         print("Nie znaleziono linków zawierających szukany tekst!")
+
+    for filename in os.listdir(downloads_dir):
+        # logging.debug(f"{filename=}")
+
+        if filename.endswith('.pdf'):
+            print(f"Przetwarzam plik: {filename}")
+
+            filepath = os.path.join(downloads_dir, filename)
+            with open(filepath, 'r'):
+                pdf_content = parse_pdf_file(filepath=filepath)
+
+        train_timetable = get_timetable_from_parsed_pdf(station='wieliszew', file_content=pdf_content)
+        logging.debug(f"{train_timetable=}")
+
+        save_timetable_to_file(
+            timetable=train_timetable, output_filepath=os.path.join(downloads_dir, 'Rozkład jazdy.txt')
+        )
