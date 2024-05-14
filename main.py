@@ -178,6 +178,8 @@ def download_file(file_url: str, downloads_dir: str, filename: str) -> None:
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
+    pypdf_logger = logging.getLogger('pypdf')
+    pypdf_logger.setLevel(logging.ERROR)  # disable WARNING messages from PyPDF library
     latency = 0.75
     downloads_dir = os.path.abspath(
         os.path.join(os.environ.get('HOMEPATH'), 'Desktop', 'Rozkłady jazdy pociągów')
