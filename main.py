@@ -29,49 +29,66 @@ def parse_pdf_file(filepath: str) -> list:
     """
     reader = PdfReader(filepath)
 
+    file_content = []
     for page in reader.pages:
-        content = page.extract_text(
+        page_content = page.extract_text(
             extraction_mode='layout',
             layout_mode_space_vertically=False,
             layout_mode_scale_weight=1.0
         )
 
-        content = content.splitlines()
-        logging.debug(f"{content=}")
-        return content
+        page_content = page_content.splitlines()
+        file_content.extend(page_content)
+        logging.debug(f"{file_content=}")
+    return file_content
 
 
-def get_timetables(station: str, file_content: list) -> None:
+def get_timetable_from_parsed_pdf(station: str, file_content: list) -> str:
     """
-    Extract train timetables from the specified PDF file for a given train station.
+    Extract train timetables from the parsed PDF file for a given train station.
 
     Args:
         station (str): Name of the station to search for in the timetables.
-        file_content (str): The content of the PDF file containing the timetables.
+        file_content (list): The text content of the parsed PDF file containing the timetables.
+
+    Returns:
+        str: A train timetable for a given train station.
     """
     station = station.upper()
     file_lines = file_content
-
+    timetable = ""
     train_line = file_lines[0]
     period = file_lines[1]
-    print(train_line)
-    print(period)
+    timetable += train_line + '\n'
+    timetable += period + '\n'
 
     for i in range(len(file_lines)):
         file_line = file_lines[i]
-
         if "kierunek" in file_line:
             direction = file_line
-            print(direction)
-
+            timetable += direction + '\n'
         if station in file_line:
             if "o" in file_line:
-                print(file_line)
+                timetable += file_line + '\n'
             elif "p" in file_line:
-                print(file_line)
+                timetable += file_line + '\n'
                 next_file_line = file_lines[i+1]
                 if "o" in next_file_line:
-                    print(next_file_line)
+                    timetable += next_file_line + '\n'
+    return timetable
+
+
+def save_timetable_to_file(timetable: str, output_filepath: str) -> None:
+    """
+    Saves a train timetable to a text file.
+
+    Args:
+        timetable (str): The text content of the parsed PDF file containing the timetables.
+        output_filepath (str): The path to the output file.
+    """
+    with open(output_filepath, 'a', encoding='utf-8') as file:
+        file.write(timetable)
+    print(f"Rozkład jazdy zapisano w pliku '{output_filepath}'.")
 
 
 def download_train_timetable(line: str) -> None:
@@ -177,7 +194,7 @@ def download_file(file_url: str, downloads_dir: str, filename: str) -> None:
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
     pypdf_logger = logging.getLogger('pypdf')
     pypdf_logger.setLevel(logging.ERROR)  # disable WARNING messages from PyPDF library
     latency = 0.75
@@ -194,8 +211,18 @@ if __name__ == '__main__':
         print("Nie znaleziono linków zawierających szukany tekst!")
 
     for filename in os.listdir(downloads_dir):
+        # logging.debug(f"{filename=}")
+
         if filename.endswith('.pdf'):
+            print(f"Przetwarzam plik: {filename}")
+
             filepath = os.path.join(downloads_dir, filename)
             with open(filepath, 'r'):
                 pdf_content = parse_pdf_file(filepath=filepath)
-                get_timetables(station='wieliszew', file_content=pdf_content)
+
+        train_timetable = get_timetable_from_parsed_pdf(station='wieliszew', file_content=pdf_content)
+        logging.debug(f"{train_timetable=}")
+
+        save_timetable_to_file(
+            timetable=train_timetable, output_filepath=os.path.join(downloads_dir, 'Rozkład jazdy.txt')
+        )
