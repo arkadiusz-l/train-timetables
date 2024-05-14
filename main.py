@@ -1,20 +1,35 @@
 import logging
 import os
 import re
-from datetime import date
 from time import sleep
 import requests
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 
 
-def get_train_timetable(line):
+class LinkNotFound(Exception):
+    """
+    Exception raised when a link is not found.
+
+    This exception can be raised when a link is not found on a given webpage.
+    """
+    pass
+
+
+def get_train_timetable(line: str) -> None:
+    """
+    Get the train timetable for a specific train line.
+
+    Args:
+        line (str): The train line for which to retrieve the timetable.
+
+    Returns:
+        None
+    """
     print(f"Szukam rozkładu jazdy dla linii {line}...")
-    today = get_current_date()
-    url = f'https://www.wtp.waw.pl/rozklady-jazdy/?wtp_dt={today}&wtp_md=3&wtp_ln={line}'
+    url = f'https://www.wtp.waw.pl/rozklady-jazdy/?wtp_md=3&wtp_ln={line}'
     text = f'Rozkład jazdy linii {line} '  # space at the end to bypass S40 line
 
-    logging.debug(f'{today=}')
     logging.debug(f'{url=}')
     logging.debug(f'{text=}')
 
@@ -36,26 +51,42 @@ def get_train_timetable(line):
     print(f"Zakończyłem szukanie rozkładu jazdy dla linii {line}.")
 
 
-def get_current_date():
-    return date.today().strftime("%Y-%m-%d")
+def find_links_with_text(url: str, text: str) -> list:
+    """
+    Finds all links on a webpage that contain a specific text.
 
+    Args:
+        url (str): The URL of the webpage to search for links.
+        text (str): The text to search for in the links.
 
-def find_links_with_text(url, text):
+    Returns:
+        list: A list of links containing the specified text.
+
+    Raises:
+        LinkNotFound: If no links containing the specified text are found.
+    """
     response = requests.get(url)
 
-    if response.status_code == 200:
-        soup = BeautifulSoup(response.content, 'html.parser')
-        pattern = re.compile(text, re.IGNORECASE)
-        all_links = soup.find_all('a', string=pattern)
-        if all_links:
-            return all_links
-        else:
-            print(f"Nie znaleziono linków zawierających tekst: '{text}'.")
-    else:
-        print("Nie udało się pobrać strony.")
+    soup = BeautifulSoup(response.content, 'html.parser')
+    pattern = re.compile(text, re.IGNORECASE)
+    all_links = soup.find_all('a', string=pattern)
+    if all_links:
+        return all_links
+    raise LinkNotFound
 
 
-def download_file(file_url, downloads_dir, filename):
+def download_file(file_url: str, downloads_dir: str, filename: str) -> None:
+    """
+    Downloads a file from a given URL and save it to the specified directory with the provided filename.
+
+    Args:
+        file_url (str): The URL of the file to download.
+        downloads_dir (str): The directory where the file will be saved.
+        filename (str): The name of the file to be saved as.
+
+    Returns:
+        None
+    """
     logging.debug(f'{file_url=}')
 
     response = requests.get(file_url, stream=True)
@@ -94,5 +125,10 @@ if __name__ == '__main__':
         os.path.join(os.environ.get('HOMEPATH'), 'Desktop', 'Rozkłady jazdy pociągów')
     )
 
-    get_train_timetable(line='S3')
-    get_train_timetable(line='S4')
+    try:
+        get_train_timetable(line='S3')
+        get_train_timetable(line='S4')
+    except requests.exceptions.ConnectionError:
+        print("Błąd połączenia!")
+    except LinkNotFound:
+        print("Nie znaleziono linków zawierających szukany tekst!")
