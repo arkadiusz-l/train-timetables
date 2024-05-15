@@ -1,0 +1,11 @@
+train_lines:  # Enter train line numbers below
+  - "S3"
+  - "S4"
+
+train_stations:  # Enter train station names below
+  - ""
+  - ""
+
+output_file_name: ""  # Enter the name of output text file
+download_dir: ""  # Enter the name of download directory
+latency: ""  # Enter the value of latency after downloading each file
