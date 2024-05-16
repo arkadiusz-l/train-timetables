@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+from pathlib import Path
 from time import sleep
 import requests
 import yaml
@@ -226,8 +227,9 @@ def load_config_from_file(yaml_path: str) -> tuple:
     logging.debug(f"{train_stations=}")
 
     download_dir_path = os.path.abspath(
-        os.path.join(os.environ.get('HOMEPATH'), 'Desktop', config['download_dir'])
+        os.path.join(Path.home(), 'Desktop', config['download_dir'])
     )
+
     logging.debug(f"{download_dir_path=}")
 
     output_file_path = os.path.join(download_dir_path, config['output_file_name'])
