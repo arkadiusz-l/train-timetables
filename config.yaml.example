@@ -1,0 +1,11 @@
+train_lines:
+  - "S3"
+  - "S4"
+
+train_stations:
+  - "Wieliszew"
+  - "Zegrze Południowe"
+
+output_file_name: "Rozkład jazdy.txt"
+download_dir_name: "Rozkłady jazdy pociągów"
+download_latency: 0.75

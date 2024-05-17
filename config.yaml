@@ -8,4 +8,4 @@ train_stations:  # Enter the train station names below
 
 output_file_name: ""  # Enter the output text file name here
 download_dir: ""  # Enter the download directory name here
-latency: ""  # Enter a delay value here after each file is downloaded
+download_latency: ""  # Enter a delay value here after each file is downloaded
