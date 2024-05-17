@@ -65,11 +65,13 @@ def test_get_timetable_from_parsed_pdf():
     for a specific train station from the provided file content.
     """
     train_station = 'station D'
-    file_content = ['ROZKŁAD JAZDY S3', 'ważny w dniu 01.06.2024', 'kierunek WARSZAWA', 'STATION A', 'STATION B',
-                    'STATION C', 'STATION D o', 'STATION E']
+    file_content = "ROZKŁAD JAZDY S3\nważny w dniu 01.06.2024\nkierunek/direction WARSZAWA\nSTATION A\nSTATION " \
+                   "B\nSTATION C\nSTATION D o\nSTATION E\nkierunek/direction STATION D\nSTATION A\nSTATION B\nSTATION " \
+                   "C\nSTATION D o\n"
     result = get_timetable_from_parsed_pdf(train_station=train_station, file_content=file_content)
 
-    assert result == 'ROZKŁAD JAZDY S3\nważny w dniu 01.06.2024\nkierunek WARSZAWA\nSTATION D o\n'
+    assert result == "ROZKŁAD JAZDY S3\nważny w dniu 01.06.2024\nkierunek/direction WARSZAWA\nSTATION D " \
+                     "o\nkierunek/direction STATION D\nSTATION D o\n"
 
 
 def test_parse_pdf_file():
@@ -94,7 +96,7 @@ def test_parse_pdf_file():
 
         result = parse_pdf_file(file_path)
 
-    assert result == ['Line 1', 'Line 2', 'Line 3', 'Line 4', 'Line 5']
+    assert result == 'Line 1\nLine 2\nLine 3Line 4\nLine 5'
 
 
 def test_find_links_with_text():
