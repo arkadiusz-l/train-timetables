@@ -258,6 +258,22 @@ def get_user_desktop_path(operating_system: str) -> str:
     return user_desktop_path
 
 
+def clear_output_file(output_file_path: str) -> None:
+    """
+    Clears the content of the text file the content of the specified output file if it exists
+    or creates a new empty file if it does not exist.
+
+    Args:
+        output_file_path (str): The path to the output file to be cleared.
+
+    Returns:
+        None
+    """
+    if os.path.exists(output_file_path):
+        with open(output_file_path, 'w') as file:
+            file.write('')
+
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     pypdf_logger = logging.getLogger('pypdf')
@@ -268,6 +284,8 @@ if __name__ == '__main__':
     desktop_path = get_user_desktop_path(operating_system=os.name)
     download_dir_path = os.path.abspath(os.path.join(desktop_path, download_dir_name))
     output_file_path = os.path.abspath(os.path.join(download_dir_path, output_file_name))
+
+    clear_output_file(output_file_path)
 
     for train_line in train_lines:
         try:
