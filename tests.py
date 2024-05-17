@@ -23,17 +23,17 @@ def test_load_config_from_file():
     train_stations:
       - Station A
       - Station B
-    download_dir: \\path\\to\\download
+    download_dir_name: \\path\\to\\download
     output_file_name: output.txt
-    latency: 2.5
+    download_latency: 2.5
     """
 
     with patch('builtins.open', mock_open(read_data=yaml_content)) as mock_file:
         result = load_config_from_file(yaml_path=yaml_path)
 
     assert result == (
-        ['Line 1', 'Line 2'], ['Station A', 'Station B'], 'C:\\path\\to\\download',
-        'C:\\path\\to\\download\\output.txt', 2.5
+        ['Line 1', 'Line 2'], ['Station A', 'Station B'], '\\path\\to\\download',
+        'output.txt', 2.5
     )
 
 
