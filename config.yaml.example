@@ -7,5 +7,5 @@ train_stations:
   - "Zegrze Południowe"
 
 output_file_name: "Rozkład jazdy.txt"
-download_dir: "Rozkłady jazdy pociągów"
-latency: 0.75
+download_dir_name: "Rozkłady jazdy pociągów"
+download_latency: 0.75
