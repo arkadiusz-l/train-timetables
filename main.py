@@ -19,7 +19,7 @@ class LinkNotFound(Exception):
     pass
 
 
-def parse_pdf_file(file_path: str) -> list:
+def parse_pdf_file(file_path: str) -> str:
     """
     Parse the text content of a PDF file and return it as a list of lines.
 
@@ -27,11 +27,11 @@ def parse_pdf_file(file_path: str) -> list:
         file_path (str): The path to the PDF file to be parsed.
 
     Returns:
-        list: A list of lines containing the extracted text content from the PDF file.
+        str: Extracted text content from the PDF file.
     """
     reader = PdfReader(file_path)
 
-    file_content = []
+    file_content = ''
     for page in reader.pages:
         page_content = page.extract_text(
             extraction_mode='layout',
@@ -39,48 +39,47 @@ def parse_pdf_file(file_path: str) -> list:
             layout_mode_scale_weight=1.0
         )
 
-        page_content = page_content.splitlines()
-        file_content.extend(page_content)
+        file_content += page_content
         logging.debug(f"{file_content=}")
     return file_content
 
 
-def get_timetable_from_parsed_pdf(train_station: str, file_content: list) -> str:
+def get_timetable_from_parsed_pdf(train_station: str, file_content: str) -> str:
     """
     Extract train timetable from the parsed PDF file for a given train station.
 
     Args:
         train_station (str): Name of the station to search for in the timetables.
-        file_content (list): The text content of the parsed PDF file containing the timetables.
+        file_content (str): The text content of the parsed PDF file containing the timetables.
 
     Returns:
         str: A train timetable for a given train station.
     """
     train_station = train_station.upper()
-    file_lines = file_content
-    timetable = ""
-    train_line = file_lines[0]
-    period = file_lines[1]
-    timetable += train_line + '\n'
-    timetable += period + '\n'
+    timetable = ''
 
-    for i in range(len(file_lines)):
-        file_line = file_lines[i]
-        if "kierunek" in file_line:
-            direction = file_line
-            if train_station not in direction:  # avoids line duplication when the station name is the same as the direction
-                timetable += direction + '\n'
-        if train_station in file_line:
-            if "o" in file_line:
-                timetable += file_line + '\n'  # adds a line with train departure
-            elif "p" in file_line:
-                timetable += file_line + '\n'  # adds a line with train arrival
-                next_file_line = file_lines[i+1]
-                if "direction" in next_file_line:  # avoids unnecessary line in one-page timetable
-                    pass
-                elif "o" in next_file_line:
-                    timetable += next_file_line + '\n'  # adds a line with train departure
-
+    if train_station in file_content:
+        file_lines = file_content.splitlines()
+        train_line = file_lines[0]
+        period = file_lines[1]
+        timetable += train_line + '\n'
+        timetable += period + '\n'
+        for i in range(len(file_lines)):
+            file_line = file_lines[i]
+            if 'kierunek' in file_line:
+                direction = file_line
+                if train_station not in direction:  # avoids line duplication when the station name is the same as the direction
+                    timetable += direction + '\n'
+            if train_station in file_line:
+                if 'o' in file_line:
+                    timetable += file_line + '\n'  # adds a line with train departure
+                elif 'p' in file_line:
+                    timetable += file_line + '\n'  # adds a line with train arrival
+                    next_file_line = file_lines[i+1]
+                    if 'kierunek' in next_file_line:  # avoids unnecessary line in one-page timetable
+                        pass
+                    elif 'o' in next_file_line:
+                        timetable += next_file_line + '\n'  # adds a line with train departure
     logging.debug(f'\n{timetable=}')
     return timetable
 
@@ -98,7 +97,8 @@ def save_timetable_to_file(timetable: str, output_file_path: str) -> None:
     """
     with open(output_file_path, 'a', encoding='utf-8') as file:
         file.write(timetable)
-    print(f"Rozkład jazdy został dodany do pliku '{output_file_path}'.\n")
+        file.write('\n')
+    print(f"Rozkład jazdy został dodany do pliku '{output_file_path}'.")
 
 
 def download_train_timetable_pdf(train_line: str) -> None:
