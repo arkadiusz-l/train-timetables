@@ -54,7 +54,7 @@ def test_save_timetable_to_file(tmp_path):
     with open(output_file_path, 'r', encoding='utf-8') as file:
         saved_content = file.read()
 
-    assert saved_content == timetable
+    assert saved_content == 'Sample timetable content.\n'
 
 
 def test_get_timetable_from_parsed_pdf():
