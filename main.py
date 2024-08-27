@@ -1,13 +1,13 @@
 import logging
 import os
 import re
+from pathlib import Path
 from time import sleep
 import requests
 import yaml
 from bs4 import BeautifulSoup
 from pypdf import PdfReader
 from tqdm import tqdm
-import getpass
 
 
 class LinkNotFound(Exception):
@@ -238,26 +238,6 @@ def load_config_from_file(yaml_path: str) -> tuple:
     return train_lines, train_stations, download_dir_name, output_file_name, download_latency
 
 
-def get_user_desktop_path(operating_system: str) -> str:
-    """
-    Gets the path to the user's "Desktop" directory based on the operating system.
-
-    Args:
-        operating_system (str): The operating system for which the path should be returned.
-        It can take values 'nt' for Windows or 'posix' for Unix-based systems (Linux, macOS).
-
-    Returns:
-        str: The path to the user's "Desktop" directory.
-    """
-    current_user = getpass.getuser()
-    user_desktop_path = ''
-    if operating_system == 'nt':  # Windows OS
-        user_desktop_path = os.path.join(os.environ.get('HOMEPATH'), 'Desktop')
-    elif operating_system == 'posix':  # Linux OS or macOS
-        user_desktop_path = os.path.join('/home', current_user, 'Desktop')
-    return user_desktop_path
-
-
 def clear_output_file(output_file_path: str) -> None:
     """
     Clears the content of the text file the content of the specified output file if it exists
@@ -281,8 +261,7 @@ if __name__ == '__main__':
 
     train_lines, train_stations, download_dir_name, output_file_name, download_latency = load_config_from_file('config.yaml')
 
-    desktop_path = get_user_desktop_path(operating_system=os.name)
-    download_dir_path = os.path.abspath(os.path.join(desktop_path, download_dir_name))
+    download_dir_path = os.path.abspath(os.path.join(Path.home(), 'Desktop', download_dir_name))
     output_file_path = os.path.abspath(os.path.join(download_dir_path, output_file_name))
 
     clear_output_file(output_file_path)
